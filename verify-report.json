@@ -1,0 +1,132 @@
+{
+  "/": {
+    "diffPixels": 0,
+    "ratio": 0,
+    "sourceSize": [
+      1280,
+      1064
+    ],
+    "targetSize": [
+      1280,
+      1064
+    ]
+  },
+  "/about": {
+    "diffPixels": 0,
+    "ratio": 0,
+    "sourceSize": [
+      1280,
+      1020
+    ],
+    "targetSize": [
+      1280,
+      1020
+    ]
+  },
+  "/cart": {
+    "diffPixels": 0,
+    "ratio": 0,
+    "sourceSize": [
+      1280,
+      1111
+    ],
+    "targetSize": [
+      1280,
+      1111
+    ]
+  },
+  "/contact": {
+    "diffPixels": 0,
+    "ratio": 0,
+    "sourceSize": [
+      1280,
+      1020
+    ],
+    "targetSize": [
+      1280,
+      1020
+    ]
+  },
+  "/faq": {
+    "diffPixels": 0,
+    "ratio": 0,
+    "sourceSize": [
+      1280,
+      1132
+    ],
+    "targetSize": [
+      1280,
+      1132
+    ]
+  },
+  "/fullscreen-page": {
+    "diffPixels": 0,
+    "ratio": 0,
+    "sourceSize": [
+      1280,
+      900
+    ],
+    "targetSize": [
+      1280,
+      900
+    ]
+  },
+  "/product-page/[slug]": {
+    "diffPixels": 0,
+    "ratio": 0,
+    "sourceSize": [
+      1280,
+      1312
+    ],
+    "targetSize": [
+      1280,
+      1312
+    ]
+  },
+  "/shop": {
+    "diffPixels": 0,
+    "ratio": 0,
+    "sourceSize": [
+      1280,
+      1420
+    ],
+    "targetSize": [
+      1280,
+      1420
+    ]
+  },
+  "/thank-you-page": {
+    "diffPixels": 0,
+    "ratio": 0,
+    "sourceSize": [
+      1280,
+      1565
+    ],
+    "targetSize": [
+      1280,
+      1565
+    ]
+  },
+  "__scenarios": [
+    {
+      "name": "add-to-cart",
+      "pass": true,
+      "detail": "cart count 0 -> 1"
+    },
+    {
+      "name": "cart-filled-visual",
+      "pass": true,
+      "detail": "0.00% diff"
+    },
+    {
+      "name": "checkout-redirect",
+      "pass": true,
+      "detail": "redirected to https://nirna3.wixsite.com/nir-ecom-classic/__ecom/checkout"
+    },
+    {
+      "name": "slideshow-autoplay /",
+      "pass": true,
+      "detail": "0.00% diff after 4200ms"
+    }
+  ]
+}
