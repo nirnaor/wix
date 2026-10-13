@@ -15,11 +15,20 @@ export interface QueryProductsV1Request {
     includeMerchantSpecificData?: boolean;
 }
 
+/** The REST API names ids `id`; the product and its variants are read as `_id` (V1Product, V1Variant). */
 function normalizeProduct(product: Record<string, unknown>): V1Product {
     const p = { ...product } as V1Product;
     const raw = product as Record<string, unknown>;
     if (raw.id && !p._id) {
         p._id = raw.id as string;
+    }
+    // Without variant ids add-to-cart sends no variantId, and ecom drops the line of a product that manages
+    // variants (the cart stays empty).
+    if (Array.isArray(p.variants)) {
+        p.variants = p.variants.map((variant) => {
+            const id = (variant as { id?: string }).id;
+            return id && !variant._id ? { ...variant, _id: id } : variant;
+        });
     }
     return p;
 }

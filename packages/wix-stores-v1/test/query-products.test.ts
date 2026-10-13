@@ -44,4 +44,21 @@ describe('queryProducts (V1)', () => {
         await queryProducts(client, { filter: { slug: 'x' } });
         expect(sentBody().query.sort).toBeUndefined();
     });
+
+    it('names the product and each variant by its REST id (add-to-cart needs the variant id)', async () => {
+        mockFetch.mockResolvedValue({
+            products: [
+                {
+                    id: 'p1',
+                    variants: [
+                        { id: 'v1', choices: { Size: 'S' } },
+                        { id: 'v2', choices: { Size: 'M' } },
+                    ],
+                },
+            ],
+        });
+        const { products } = await queryProducts(client, { filter: { slug: 'x' } });
+        expect(products![0]._id).toBe('p1');
+        expect(products![0].variants!.map((v) => v._id)).toEqual(['v1', 'v2']);
+    });
 });
