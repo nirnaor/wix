@@ -48,6 +48,16 @@ interface SearchFastCarryForward {
     searchFields: string;
     fuzzySearch: boolean;
     collections: CollectionInfos;
+    /** The collection the search is limited to (the `collectionId` prop), kept for searching and loading more. */
+    collectionId?: string;
+}
+
+/**
+ * `collectionId` (e.g. from the page's headless import) limits every search to one collection, like a Wix
+ * gallery linked to a collection.
+ */
+export interface ProductSearchProps extends PageProps {
+    collectionId?: string;
 }
 
 const PAGE_SIZE = 12;
@@ -106,7 +116,7 @@ async function renderSlowlyChanging(props: PageProps, wixStores: WixStoresV1Serv
  * Loads initial products
  */
 async function renderFastChanging(
-    props: PageProps,
+    props: ProductSearchProps,
     slowCarryForward: SearchSlowCarryForward,
     _wixStores: WixStoresV1Service,
 ) {
@@ -115,6 +125,7 @@ async function renderFastChanging(
     return Pipeline.try(async () => {
         const result = await searchProducts({
             query: '',
+            filters: props.collectionId ? { collectionId: props.collectionId } : undefined,
             pageSize: PAGE_SIZE,
             page: 1,
         });
@@ -189,6 +200,7 @@ async function renderFastChanging(
                     searchFields: slowCarryForward.searchFields,
                     fuzzySearch: slowCarryForward.fuzzySearch,
                     collections: slowCarryForward.collections,
+                    ...(props.collectionId ? { collectionId: props.collectionId } : {}),
                 },
             };
         });
@@ -199,7 +211,7 @@ async function renderFastChanging(
 // ============================================================================
 
 function ProductSearchInteractive(
-    props: Props<PageProps>,
+    props: Props<ProductSearchProps>,
     refs: ProductSearchRefs,
     viewStateSignals: Signals<ProductSearchFastViewState>,
     fastCarryForward: SearchFastCarryForward,
@@ -265,6 +277,7 @@ function ProductSearchInteractive(
                     collectionIds: currentFilters.categoryFilter.categories
                         .filter((c) => c.isSelected)
                         .map((c) => c.categoryId),
+                    collectionId: fastCarryForward.collectionId,
                 },
                 sortBy: mapSortToAction(currentSort),
                 pageSize: PAGE_SIZE,
@@ -311,6 +324,7 @@ function ProductSearchInteractive(
                     collectionIds: currentFilters.categoryFilter.categories
                         .filter((c) => c.isSelected)
                         .map((c) => c.categoryId),
+                    collectionId: fastCarryForward.collectionId,
                 },
                 sortBy: mapSortToAction(currentSort),
                 page: nextPage,
@@ -592,7 +606,7 @@ function ProductSearchInteractive(
  * Uses collections for filtering and page-based pagination.
  */
 export const productSearch = makeJayStackComponent<ProductSearchContract>()
-    .withProps<PageProps>()
+    .withProps<ProductSearchProps>()
     .withServices(WIX_STORES_V1_SERVICE_MARKER)
     .withContexts(WIX_STORES_V1_CONTEXT)
     .withSlowlyRender(renderSlowlyChanging)

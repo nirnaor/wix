@@ -1,7 +1,11 @@
 // @vitest-environment node
 
 import { describe, expect, it } from 'vitest';
-import { pageInProductOrder, usesProductOrder } from '../lib/utils/product-order.js';
+import {
+    collectionOrderFor,
+    pageInProductOrder,
+    usesProductOrder,
+} from '../lib/utils/product-order.js';
 
 // Every product of the store, as the V1 query returns them sorted by numericId.
 const byNumericId = ['lamp', 'perfume', 'shoes', 'glasses', 'watch', 'hoodie', 'cactus', 'mug'].map(
@@ -80,5 +84,32 @@ describe('usesProductOrder', () => {
         for (const sortBy of ['price_asc', 'price_desc', 'name_asc', 'name_desc', 'newest']) {
             expect(usesProductOrder(productOrder, sortBy, {})).toBe(false);
         }
+    });
+});
+
+describe('collectionOrderFor', () => {
+    const order = { c1: ['b', 'a'] };
+
+    it("gives a collection's default listing that collection's configured order", () => {
+        expect(collectionOrderFor(order, 'relevance', '', { collectionId: 'c1' })).toEqual([
+            'b',
+            'a',
+        ]);
+    });
+
+    it('gives no order to other collections, unscoped searches, queries, other sorts and filters', () => {
+        expect(collectionOrderFor(order, 'relevance', '', { collectionId: 'c2' })).toEqual([]);
+        expect(collectionOrderFor(order, 'relevance', '', {})).toEqual([]);
+        expect(collectionOrderFor(order, 'relevance', 'tee', { collectionId: 'c1' })).toEqual([]);
+        expect(collectionOrderFor(order, 'price_asc', '', { collectionId: 'c1' })).toEqual([]);
+        expect(
+            collectionOrderFor(order, 'relevance', '', { collectionId: 'c1', minPrice: 5 }),
+        ).toEqual([]);
+        expect(
+            collectionOrderFor(order, 'relevance', '', {
+                collectionId: 'c1',
+                collectionIds: ['c3'],
+            }),
+        ).toEqual([]);
     });
 });

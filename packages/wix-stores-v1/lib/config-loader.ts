@@ -23,7 +23,15 @@ export interface WixStoresV1Config {
      * Empty = the API's order.
      */
     productOrder: string[];
+    /**
+     * The same for one collection, by collection id: the order a product search limited to that collection (a
+     * product-search `collectionId` prop, e.g. a Wix gallery linked to a collection) lists it in.
+     */
+    collectionOrder: Record<string, string[]>;
 }
+
+const slugs = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((slug): slug is string => typeof slug === 'string') : [];
 
 /**
  * Load wix-stores-v1 config from config/.wix-stores-v1.yaml.
@@ -40,8 +48,14 @@ export function loadWixStoresV1Config(projectRoot?: string): WixStoresV1Config {
         : null;
     return {
         locale: typeof raw?.locale === 'string' ? raw.locale : null,
-        productOrder: Array.isArray(raw?.productOrder)
-            ? raw.productOrder.filter((slug): slug is string => typeof slug === 'string')
-            : [],
+        productOrder: slugs(raw?.productOrder),
+        collectionOrder:
+            raw?.collectionOrder && typeof raw.collectionOrder === 'object'
+                ? Object.fromEntries(
+                      Object.entries(raw.collectionOrder as Record<string, unknown>).map(
+                          ([id, order]) => [id, slugs(order)],
+                      ),
+                  )
+                : {},
     };
 }

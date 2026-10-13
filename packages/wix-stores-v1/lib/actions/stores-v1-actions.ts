@@ -22,7 +22,11 @@ import {
 } from '../wix-apis/index.js';
 import type { WixFilter } from '@jay-framework/wix-server-client';
 import type { V1Product } from '../wix-apis/types.js';
-import { pageInProductOrder, usesProductOrder } from '../utils/product-order.js';
+import {
+    collectionOrderFor,
+    pageInProductOrder,
+    usesProductOrder,
+} from '../utils/product-order.js';
 
 // ============================================================================
 // Types
@@ -40,6 +44,8 @@ export interface ProductSearchFilters {
     minPrice?: number;
     maxPrice?: number;
     collectionIds?: string[];
+    /** Limit the search to one collection (product-search's `collectionId` prop), on top of `collectionIds`. */
+    collectionId?: string;
 }
 
 export interface SearchProductsInput {
@@ -142,6 +148,10 @@ function buildBaseFilter(query: string | undefined, filters: ProductSearchFilter
         conditions.push({ 'collections.id': { $hasSome: filters.collectionIds } });
     }
 
+    if (filters.collectionId) {
+        conditions.push({ 'collections.id': { $hasSome: [filters.collectionId] } });
+    }
+
     if (conditions.length === 0) return {};
     if (conditions.length === 1) return conditions[0];
     return { $and: conditions };
@@ -169,13 +179,21 @@ function buildPriceFilter(
 }
 
 /**
- * The default listing in the configured product order (see WixStoresV1Config.productOrder): every product by
- * numericId, the configured slugs moved first. No V1 query sorts by a collection's manual order.
+ * A default listing in a configured order (see WixStoresV1Config.productOrder / collectionOrder): every product
+ * matching `filter` by numericId, the configured slugs moved first. No V1 query sorts by a collection's manual
+ * order.
  */
-async function queryInProductOrder(wixStores: WixStoresV1Service, page: number, pageSize: number) {
+async function queryInProductOrder(
+    wixStores: WixStoresV1Service,
+    order: string[],
+    page: number,
+    pageSize: number,
+    filter?: WixFilter,
+) {
     const all: V1Product[] = [];
     for (let offset = 0; ; offset += 100) {
         const result = await queryProductsApi(wixStores.wixClient, {
+            ...(filter ? { filter } : {}),
             sort: [{ fieldName: 'numericId', order: 'ASC' }],
             paging: { limit: 100, offset },
         });
@@ -183,7 +201,7 @@ async function queryInProductOrder(wixStores: WixStoresV1Service, page: number, 
         all.push(...products);
         if (products.length < 100) break;
     }
-    return pageInProductOrder(all, wixStores.productOrder, page, pageSize);
+    return pageInProductOrder(all, order, page, pageSize);
 }
 
 export const searchProducts = makeJayQuery('wixStoresV1.searchProducts')
@@ -218,14 +236,28 @@ export const searchProducts = makeJayQuery('wixStoresV1.searchProducts')
                         break;
                 }
 
+                const inCollectionOrder = collectionOrderFor(
+                    wixStores.collectionOrder ?? {},
+                    sortBy,
+                    query,
+                    filters,
+                );
                 const [result, minPriceResult, maxPriceResult] = await Promise.all([
-                    usesProductOrder(wixStores.productOrder, sortBy, fullFilter)
-                        ? queryInProductOrder(wixStores, page, pageSize)
-                        : queryProductsApi(wixStores.wixClient, {
-                              filter: fullFilter,
-                              sort: sort.length > 0 ? sort : undefined,
-                              paging: { limit: pageSize, offset: (page - 1) * pageSize },
-                          }),
+                    inCollectionOrder.length
+                        ? queryInProductOrder(
+                              wixStores,
+                              inCollectionOrder,
+                              page,
+                              pageSize,
+                              fullFilter,
+                          )
+                        : usesProductOrder(wixStores.productOrder, sortBy, fullFilter)
+                          ? queryInProductOrder(wixStores, wixStores.productOrder, page, pageSize)
+                          : queryProductsApi(wixStores.wixClient, {
+                                filter: fullFilter,
+                                sort: sort.length > 0 ? sort : undefined,
+                                paging: { limit: pageSize, offset: (page - 1) * pageSize },
+                            }),
                     queryProductsApi(wixStores.wixClient, {
                         filter: baseFilter,
                         sort: [{ fieldName: 'price', order: 'ASC' }],

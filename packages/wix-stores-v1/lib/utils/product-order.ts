@@ -17,6 +17,26 @@ export function usesProductOrder(
 }
 
 /**
+ * The configured order of a search limited to one collection (see WixStoresV1Config.collectionOrder), or none:
+ * it applies to that collection's default listing (relevance sort, no query and no other filter).
+ */
+export function collectionOrderFor(
+    collectionOrder: Record<string, string[]>,
+    sortBy: string,
+    query: string | undefined,
+    filters: {
+        collectionId?: string;
+        collectionIds?: string[];
+        minPrice?: number;
+        maxPrice?: number;
+    },
+): string[] {
+    if (!filters.collectionId || sortBy !== 'relevance' || query?.trim()) return [];
+    if (filters.collectionIds?.length || filters.minPrice || filters.maxPrice) return [];
+    return collectionOrder[filters.collectionId] ?? [];
+}
+
+/**
  * One page of `products` (every product, by numericId) with the `productOrder` slugs moved first, in that
  * order; the rest keep their order. `totalResults` counts every product.
  */

@@ -10,6 +10,7 @@ inputSchema:
     minPrice?: number
     maxPrice?: number
     collectionIds?: string[]
+    collectionId?: string
   sortBy?: enum(relevance | price_asc | price_desc | name_asc | name_desc | newest)
   page?: number
   pageSize?: number

@@ -27,6 +27,7 @@ export function provideWixStoresV1Service(
         wixClient,
         locale: config?.locale ?? null,
         productOrder: config?.productOrder ?? [],
+        collectionOrder: config?.collectionOrder ?? {},
     };
     registerService(WIX_STORES_V1_SERVICE_MARKER, service);
     return service;
